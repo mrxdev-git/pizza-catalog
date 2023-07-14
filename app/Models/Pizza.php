@@ -19,4 +19,13 @@ class Pizza extends Model
             ->withTimestamps();
     }
 
+    public function calculatePrice()
+    {
+        $total = $this->ingredients->sum(function ($ingredient) {
+            return $ingredient->cost_price;
+        });
+
+        return $total + ($total * 0.5);
+    }
+
 }
