@@ -12,4 +12,11 @@ class Pizza extends Model
     protected $table = 'pizzas';
     protected $fillable = ['name', 'price'];
 
+    public function ingredients()
+    {
+        return $this->belongsToMany(Ingredient::class)
+            ->withPivot('order')
+            ->withTimestamps();
+    }
+
 }
