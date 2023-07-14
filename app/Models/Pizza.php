@@ -22,7 +22,7 @@ class Pizza extends Model
     public function calculatePrice()
     {
         $total = $this->ingredients->sum(function ($ingredient) {
-            return $ingredient->cost_price;
+            return $ingredient->price;
         });
 
         return $total + ($total * 0.5);
