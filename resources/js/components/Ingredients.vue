@@ -1,7 +1,10 @@
 <template>
     <div>
         <h2>Ingredients</h2>
-        <button @click="showModal = true" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#ingredientModal">Add Ingredient</button>
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#ingredientsModal">
+            Add Ingredient
+        </button>
+
         <table class="table">
             <thead>
                 <tr>
@@ -15,25 +18,25 @@
                     <td>{{ ingredient.name }}</td>
                     <td>{{ ingredient.price }}</td>
                     <td>
+                        <button @click="editIngredient(ingredient)" class="btn btn-primary">Edit</button>
                         <button @click="deleteIngredient(ingredient.id)" class="btn btn-danger">Delete</button>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- Ingredient Modal -->
-        <div class="modal fade" id="ingredientModal" tabindex="-1" role="dialog" aria-labelledby="ingredientModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog" role="document">
+        <!-- Add/Edit Ingredient Modal -->
+        <div class="modal" id="ingredientsModal" ref="ingredientsModal">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="ingredientModalLabel">Add Ingredient</h5>
+                        <h5 class="modal-title">{{ editingIngredient ? 'Edit Ingredient' : 'Add Ingredient' }}</h5>
                         <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <ingredient-form @ingredient-added="fetchIngredients"></ingredient-form>
+                        <ingredient-form :ingredient="editingIngredient" @ingredient-added="ingredientAdded" @ingredient-updated="ingredientUpdated"></ingredient-form>
                     </div>
                 </div>
             </div>
@@ -44,15 +47,17 @@
 <script>
 import IngredientForm from './IngredientForm.vue';
 import axios from 'axios';
+import { Modal } from 'bootstrap';
 
 export default {
     components: {
-        IngredientForm,
+        IngredientForm
     },
     data() {
         return {
             ingredients: [],
-            showModal: false,
+            editingIngredient: null,
+            modal: {}
         };
     },
     methods: {
@@ -65,6 +70,17 @@ export default {
                     console.error(error);
                 });
         },
+        ingredientAdded(ingredient) {
+            this.ingredients.push(ingredient);
+        },
+        ingredientUpdated(ingredient) {
+            const index = this.ingredients.findIndex(i => i.id === ingredient.id);
+            if (index !== -1) {
+                this.ingredients.splice(index, 1, ingredient);
+            }
+
+            this.modal.hide();
+        },
         deleteIngredient(ingredientId) {
             axios.delete(`/api/ingredients/${ingredientId}`)
                 .then(() => {
@@ -74,9 +90,22 @@ export default {
                     console.error(error);
                 });
         },
+        editIngredient(ingredient) {
+            this.modal.show();
+            this.editingIngredient = ingredient;
+        },
+        resetIngredient(){
+            this.editingIngredient = null;
+        }
     },
     mounted() {
         this.fetchIngredients();
+
+        this.$refs.ingredientsModal.addEventListener('hidden.bs.modal', () => {
+            this.resetIngredient();
+        });
+
+        this.modal = new Modal('#ingredientsModal');
     },
 };
 </script>
