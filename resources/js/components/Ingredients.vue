@@ -72,6 +72,7 @@ export default {
         },
         ingredientAdded(ingredient) {
             this.ingredients.push(ingredient);
+            this.modal.hide();
         },
         ingredientUpdated(ingredient) {
             const index = this.ingredients.findIndex(i => i.id === ingredient.id);
@@ -82,13 +83,15 @@ export default {
             this.modal.hide();
         },
         deleteIngredient(ingredientId) {
-            axios.delete(`/api/ingredients/${ingredientId}`)
-                .then(() => {
-                    this.ingredients = this.ingredients.filter(i => i.id !== ingredientId);
-                })
-                .catch(error => {
-                    console.error(error);
-                });
+            if (confirm('Are you sure?')) {
+                axios.delete(`/api/ingredients/${ingredientId}`)
+                    .then(() => {
+                        this.ingredients = this.ingredients.filter(i => i.id !== ingredientId);
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            }
         },
         editIngredient(ingredient) {
             this.modal.show();
@@ -99,13 +102,13 @@ export default {
         }
     },
     mounted() {
-        this.fetchIngredients();
+        this.modal = new Modal('#ingredientsModal');
 
         this.$refs.ingredientsModal.addEventListener('hidden.bs.modal', () => {
             this.resetIngredient();
         });
 
-        this.modal = new Modal('#ingredientsModal');
+        this.fetchIngredients();
     },
 };
 </script>
