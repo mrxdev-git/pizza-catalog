@@ -18,7 +18,7 @@
                     <td>{{ ingredient.name }}</td>
                     <td>{{ ingredient.price }}</td>
                     <td>
-                        <button @click="editIngredient(ingredient)" class="btn btn-primary">Edit</button>
+                        <button @click="editIngredient(ingredient)" class="btn btn-primary mx-1">Edit</button>
                         <button @click="deleteIngredient(ingredient.id)" class="btn btn-danger">Delete</button>
                     </td>
                 </tr>

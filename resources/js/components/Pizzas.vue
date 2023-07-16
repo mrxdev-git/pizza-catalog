@@ -25,7 +25,7 @@
                         </ul>
                     </td>
                     <td>
-                        <button @click="editPizza(pizza)" class="btn btn-primary">Edit</button>
+                        <button @click="editPizza(pizza)" class="btn btn-primary mx-1">Edit</button>
                         <button @click="deletePizza(pizza.id)" class="btn btn-danger">Delete</button>
                     </td>
                 </tr>
