@@ -34,9 +34,31 @@ class IngredientController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Ingredient $ingredient)
+    public function update(Request $request, $id)
     {
-        $ingredient->update($request->all());
+        $request->validate([
+            'name'  => 'required',
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        $ingredient = Ingredient::findOrFail($id);
+        $ingredient->name = $request->input('name');
+        $ingredient->price = $request->input('price');
+        $ingredient->save();
+
+        if ($ingredient->isDirty('price')) {
+            $pizzas = $ingredient->pizzas;
+
+            if ($pizzas) {
+                foreach($pizzas as $pizza) {
+                    $ingredients_price = $pizza->ingredients()->sum('price');
+                    $sellingPrice      = $ingredients_price + ($ingredients_price * 0.5);
+                    $pizza->price      = $sellingPrice;
+                    $pizza->save();
+                }
+            }
+        }
+
         return response()->json($ingredient);
     }
 
