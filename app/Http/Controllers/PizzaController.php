@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pizza;
 use Illuminate\Http\Request;
+use App\Models\Ingredient;
 
 class PizzaController extends Controller
 {
@@ -21,23 +22,38 @@ class PizzaController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string'
+        $request->validate([
+            'name' => 'required',
+            'ingredients' => 'required|array',
+            'ingredients.*' => 'exists:ingredients,id',
         ]);
 
-        $pizza = Pizza::create($validatedData);
+        $pizza = Pizza::create([
+            'name' => $request->input('name'),
+            'price' => 0
+        ]);
+
+        $this->processPizza($request, $pizza);
+
         return response()->json($pizza, 201);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Pizza $pizza)
+    public function update(Request $request, $id)
     {
-        $pizza->name = $request->input('name');
-        $pizza->save();
+        $request->validate([
+            'name' => 'required',
+            'ingredients' => 'required|array',
+            'ingredients.*' => 'exists:ingredients,id',
+        ]);
 
-        $pizza->ingredients()->sync($request->input('ingredients'));
+        $pizza = Pizza::findOrFail($id);
+
+        $this->processPizza($request, $pizza);
+
+        return response()->json($pizza, 200);
     }
 
     /**
@@ -47,5 +63,30 @@ class PizzaController extends Controller
     {
         $pizza->delete();
         return response()->noContent();
+    }
+
+    protected function processPizza(Request $request, Pizza $pizza)
+    {
+        $pizza->name = $request->input('name');
+        $pizza->price = 0;
+
+        $ingredients = $request->input('ingredients');
+        $order = 1;
+
+        $pizza->ingredients()->detach();
+
+        foreach ($ingredients as $ingredientId) {
+            $ingredient = Ingredient::find($ingredientId);
+
+            if ($ingredient) {
+                $pizza->ingredients()->attach($ingredient, ['order' => $order]);
+                $pizza->price += $ingredient->price;
+                $order++;
+            }
+        }
+
+        $pizza->price += ($pizza->price * 0.5);
+
+        $pizza->save();
     }
 }
