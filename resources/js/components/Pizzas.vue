@@ -1,7 +1,9 @@
 <template>
     <div>
         <h2>Pizzas</h2>
-        <button @click="showModal = true" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#pizzaModal">Add Pizza</button>
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#pizzaModal">
+            Add Pizza
+        </button>
         <table class="table">
             <thead>
                 <tr>
@@ -14,31 +16,32 @@
             <tbody>
                 <tr v-for="pizza in pizzas" :key="pizza.id">
                     <td>{{ pizza.name }}</td>
-                    <td>{{ pizza.price }}</td>
+                    <td>{{ calculateSellingPrice(pizza) }}</td>
                     <td>
                         <ul>
-                            <li v-for="ingredient in pizza.ingredients" :key="ingredient.id">{{ ingredient.name }}</li>
+                            <li v-for="ingredient in pizza.ingredients" :key="ingredient.id">
+                                {{ ingredient.name }} ({{ ingredient.price }})
+                            </li>
                         </ul>
                     </td>
                     <td>
+                        <button @click="editPizza(pizza)" class="btn btn-primary">Edit</button>
                         <button @click="deletePizza(pizza.id)" class="btn btn-danger">Delete</button>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- Pizza Modal -->
-        <div class="modal fade" id="pizzaModal" tabindex="-1" role="dialog" aria-labelledby="pizzaModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+        <!-- Add/Edit Pizza Modal -->
+        <div class="modal" id="pizzaModal" ref="pizzaModal">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="pizzaModalLabel">Add Pizza</h5>
-                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <h5 class="modal-title">{{ editingPizza ? 'Edit Pizza' : 'Add Pizza' }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <pizza-form :ingredients="ingredients" @pizza-added="fetchPizzas"></pizza-form>
+                        <pizza-form :pizza="editingPizza" :ingredients="ingredients" @pizza-added="pizzaAdded" @pizza-updated="pizzaUpdated"></pizza-form>
                     </div>
                 </div>
             </div>
@@ -49,16 +52,18 @@
 <script>
 import PizzaForm from './PizzasForm.vue';
 import axios from 'axios';
+import {Modal} from "bootstrap";
 
 export default {
     components: {
-        PizzaForm,
+        PizzaForm
     },
     data() {
         return {
             pizzas: [],
             ingredients: [],
-            showModal: false,
+            editingPizza: null,
+            modal: {}
         };
     },
     methods: {
@@ -80,6 +85,24 @@ export default {
                     console.error(error);
                 });
         },
+        calculateSellingPrice(pizza) {
+            const ingredientsTotal = pizza.ingredients.reduce((total, ingredient) => {
+                return total + ingredient.price;
+            }, 0);
+            const preparationCost = ingredientsTotal * 0.5;
+            return (ingredientsTotal + preparationCost).toFixed(2);
+        },
+        pizzaAdded(pizza) {
+            this.pizzas.push(pizza);
+            this.modal.hide();
+        },
+        pizzaUpdated(pizza) {
+            const index = this.pizzas.findIndex(p => p.id === pizza.id);
+            if (index !== -1) {
+                this.pizzas.splice(index, 1, pizza);
+            }
+            this.modal.hide();
+        },
         deletePizza(pizzaId) {
             axios.delete(`/api/pizzas/${pizzaId}`)
                 .then(() => {
@@ -89,10 +112,26 @@ export default {
                     console.error(error);
                 });
         },
+        editPizza(pizza) {
+            this.modal.show();
+            this.editingPizza = pizza;
+        },
+        closeModal() {
+            this.editingPizza = null;
+        },
+        resetPizza(){
+            this.editingIngredient = null;
+        }
     },
     mounted() {
         this.fetchPizzas();
         this.fetchIngredients();
+
+        this.$refs.pizzaModal.addEventListener('hidden.bs.modal', () => {
+            this.resetPizza();
+        });
+
+        this.modal = new Modal('#pizzaModal');
     },
 };
 </script>
