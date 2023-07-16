@@ -86,9 +86,9 @@ export default {
                 });
         },
         calculateSellingPrice(pizza) {
-            const ingredientsTotal = pizza.ingredients.reduce((total, ingredient) => {
+            const ingredientsTotal = pizza.ingredients ? pizza.ingredients.reduce((total, ingredient) => {
                 return total + ingredient.price;
-            }, 0);
+            }, 0) : 0;
             const preparationCost = ingredientsTotal * 0.5;
             return (ingredientsTotal + preparationCost).toFixed(2);
         },
