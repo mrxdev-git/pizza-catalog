@@ -103,6 +103,14 @@ export default {
                 this.calculateTotalPrice();
             },
             deep: true
+        },
+
+        pizza(v){
+            if (v && v.id ){
+                this.form.name = v.name;
+                this.form.ingredients = v.ingredients.map(i => i.id);
+                this.calculateTotalPrice();
+            }
         }
     }
 };
