@@ -13,7 +13,7 @@ class PizzaController extends Controller
      */
     public function index()
     {
-        $pizza = Pizza::all();
+        $pizza = Pizza::with('ingredients')->get();
         return response()->json($pizza);
     }
 
