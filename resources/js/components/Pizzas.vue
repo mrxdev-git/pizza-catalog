@@ -1,7 +1,7 @@
 <template>
     <div>
         <h2>Pizzas</h2>
-        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#pizzaModal">
+        <button class="btn btn-primary mb-3" @click="addPizza()">
             Add Pizza
         </button>
         <table class="table">
@@ -105,17 +105,23 @@ export default {
             this.modal.hide();
         },
         deletePizza(pizzaId) {
-            axios.delete(`/api/pizzas/${pizzaId}`)
-                .then(() => {
-                    this.pizzas = this.pizzas.filter(p => p.id !== pizzaId);
-                })
-                .catch(error => {
-                    console.error(error);
-                });
+            if (confirm('Are you sure?')) {
+                axios.delete(`/api/pizzas/${pizzaId}`)
+                    .then(() => {
+                        this.pizzas = this.pizzas.filter(p => p.id !== pizzaId);
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            }
         },
         editPizza(pizza) {
             this.modal.show();
             this.editingPizza = pizza;
+        },
+        addPizza(){
+            this.editingPizza = null;
+            this.modal.show();
         },
         closeModal() {
             this.editingPizza = null;
