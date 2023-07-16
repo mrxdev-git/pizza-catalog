@@ -88,13 +88,15 @@ export default {
         },
 
         calculateTotalPrice() {
-            this.totalPrice = this.form.ingredients.reduce((total, ingredientId) => {
+            let total = this.form.ingredients.reduce((total, ingredientId) => {
                 const ingredient = this.ingredients.find(i => i.id === ingredientId);
                 if (ingredient) {
                     return parseFloat(total) + parseFloat(ingredient.price);
                 }
                 return total;
             }, 0);
+
+            this.totalPrice = (total + (total * 0.5)).toFixed(2);
         }
     },
     watch: {
