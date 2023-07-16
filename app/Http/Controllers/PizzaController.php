@@ -49,11 +49,11 @@ class PizzaController extends Controller
             'ingredients.*' => 'exists:ingredients,id',
         ]);
 
-        $pizza = Pizza::findOrFail($id);
+        $pizza = Pizza::with('ingredients')->findOrFail($id);
 
         $this->processPizza($request, $pizza);
 
-        return response()->json($pizza, 200);
+        return response()->json($pizza);
     }
 
     /**
@@ -65,7 +65,7 @@ class PizzaController extends Controller
         return response()->noContent();
     }
 
-    protected function processPizza(Request $request, Pizza $pizza)
+    protected function processPizza(Request $request, $pizza)
     {
         $pizza->name = $request->input('name');
         $pizza->price = 0;
@@ -88,5 +88,7 @@ class PizzaController extends Controller
         $pizza->price += ($pizza->price * 0.5);
 
         $pizza->save();
+
+        $pizza->load('ingredients');
     }
 }
