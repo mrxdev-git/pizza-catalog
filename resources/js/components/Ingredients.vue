@@ -1,7 +1,7 @@
 <template>
     <div>
         <h2>Ingredients</h2>
-        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#ingredientsModal">
+        <button class="btn btn-primary mb-3" @click="addIngredient()">
             Add Ingredient
         </button>
 
@@ -92,6 +92,10 @@ export default {
                         console.error(error);
                     });
             }
+        },
+        addIngredient(){
+            this.editingIngredient = null;
+            this.modal.show();
         },
         editIngredient(ingredient) {
             this.modal.show();
