@@ -3,8 +3,13 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import axios from 'axios';
 
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
+library.add(faBars);
+
 import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap/dist/js/bootstrap.min.js'
+import 'bootstrap/dist/js/bootstrap.min.js';
 
 import App from './components/App.vue';
 
@@ -27,5 +32,7 @@ const app = createApp(App);
 app.use(router);
 
 app.config.globalProperties.$http = axios;
+
+app.component('font-awesome-icon', FontAwesomeIcon);
 
 app.mount('#app');
