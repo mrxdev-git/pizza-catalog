@@ -1,6 +1,5 @@
 <template>
     <div>
-        <h3>{{ pizza ? 'Edit Pizza' : 'Add Pizza' }}</h3>
         <form @submit.prevent="savePizza">
             <div class="mb-3">
                 <label for="name" class="form-label">Name:</label>
@@ -8,13 +7,37 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Ingredients:</label>
-                <div class="form-check" v-for="ingredient in ingredients" :key="ingredient.id">
-                    <input class="form-check-input" type="checkbox" :id="`ingredient-${ingredient.id}`" v-model="form.ingredients" :value="ingredient.id">
-                    <label class="form-check-label" :for="`ingredient-${ingredient.id}`">
-                        {{ ingredient.name }} ({{ ingredient.price }})
-                    </label>
+                <div class="selected" v-if="form.ingredients.length">
+                    <label class="form-label">Selected ingredients:</label>
+
+                    <draggable class="dragArea list-group w-full" :list="form.ingredients" handle=".handle">
+                        <div class="form-check" v-for="ingredient_id in form.ingredients" :key="ingredient_id">
+                            <span class="handle">
+                                <font-awesome-icon icon="fa-solid fa-bars" />
+                            </span>
+
+                            <div>
+                                <input class="form-check-input" type="checkbox" :id="`ingredient-${ingredient_id}`" v-model="form.ingredients" :value="ingredient_id">
+                                <label class="form-check-label" :for="`ingredient-${ingredient_id}`">
+                                    {{ getIngredientName(ingredient_id) }} ({{ getIngredientPrice(ingredient_id) }})
+                                </label>
+                            </div>
+                        </div>
+                    </draggable>
                 </div>
+
+                <div class="unselected" v-if="availableIngredients.length">
+                    <label class="form-label">Available ingredients:</label>
+
+                    <div class="form-check" v-for="ingredient in availableIngredients" :key="ingredient.id">
+                        <input class="form-check-input" type="checkbox" :id="`ingredient-${ingredient.id}`" v-model="form.ingredients" :value="ingredient.id">
+                        <label class="form-check-label" :for="`ingredient-${ingredient.id}`">
+                            {{ ingredient.name }} ({{ ingredient.price }})
+                        </label>
+                    </div>
+                </div>
+
+
             </div>
 
             <div class="mb-3">
@@ -29,16 +52,20 @@
 
 <script>
 import axios from 'axios';
+import { VueDraggableNext } from 'vue-draggable-next';
 
 export default {
     props: ['pizza', 'ingredients'],
+    components: {
+        draggable: VueDraggableNext
+    },
     data() {
         return {
             form: {
                 name: this.pizza ? this.pizza.name : '',
                 ingredients: this.pizza ? this.pizza.ingredients.map(i => i.id) : [],
             },
-            totalPrice: 0,
+            totalPrice: 0
         };
     },
     methods: {
@@ -86,7 +113,6 @@ export default {
                 ingredients: [],
             };
         },
-
         calculateTotalPrice() {
             let total = this.form.ingredients.reduce((total, ingredientId) => {
                 const ingredient = this.ingredients.find(i => i.id === ingredientId);
@@ -97,6 +123,24 @@ export default {
             }, 0);
 
             this.totalPrice = (total + (total * 0.5)).toFixed(2);
+        },
+
+        getIngredientName(ingredientId) {
+            const ingredient = this.ingredients.find(i => i.id === ingredientId);
+            return ingredient ? ingredient.name : '';
+        },
+
+        getIngredientPrice(ingredientId) {
+            const ingredient = this.ingredients.find(i => i.id === ingredientId);
+            return ingredient ? ingredient.price : '';
+        }
+    },
+    computed: {
+        availableIngredients(){
+            return this.ingredients.filter(i => {
+                let existing = this.form.ingredients.find(ing => ing === i.id);
+                return !existing;
+            });
         }
     },
     watch: {
@@ -108,7 +152,7 @@ export default {
         },
 
         pizza(v){
-            if (v && v.id ){
+            if (v && v.id){
                 this.form.name = v.name;
                 this.form.ingredients = v.ingredients.map(i => i.id);
                 this.calculateTotalPrice();
@@ -119,5 +163,12 @@ export default {
 </script>
 
 <style scoped>
-/* Optional: Add custom styles here */
+.handle {
+    float: left;
+    margin-right: 2rem;
+    font-size: 14px;
+    margin-top: 2px;
+    cursor: pointer;
+    color: #6c6c6c
+}
 </style>
